@@ -1,6 +1,7 @@
 import requests
 import re 
 import json
+import pandas
 
 def write_jsonl(file_path, data):
     with open(file_path, 'w', encoding='utf-8') as f:
@@ -37,4 +38,5 @@ def get_info():
 
     write_jsonl("summary.jsonl", subreddit_size_dict)
 
-get_info()
+
+# get_info()
