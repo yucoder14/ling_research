@@ -2,16 +2,30 @@ import json
 import ijson 
 import os 
 
+
+"""
+    For breaking up large utterances.json file into chunks with specified 
+    number of sentence per chunk. This is specifically built for breaking 
+    up subreddit data when utterances.json is too big for convokit library 
+    to handle. I guess the down side is that we can't use convokit's methods, 
+    but what's the use if you can't even load the data into memory without 
+    waiting an eternity and possibly risking of spawning OOMd
+
+    I can then iterate through the files and load it into pandas dataframe 
+    to then do nlp or whatever needs to be done on the data
+"""
+
 root = "/Accounts/yuc3/.convokit/saved-corpora/subreddit-AskReddit"
 uge_json_path = f"{root}/utterances.json"
 split_utterances_dir = f"{root}/splits"
 
-counter = 0
+directory_coutner = 0
+utterance_counter = 0
+num_file_per_dir = 1000
 sentences_per_chunk = 100000
 
 chunk = []
 
-os.makedirs(split_utterances_dir, exist_ok=True)
 
 with open(uge_json_path, 'rb') as f: 
     parser = ijson.parse(f)
@@ -34,8 +48,13 @@ with open(uge_json_path, 'rb') as f:
             elif event == "end_map":
                 chunk.append(partial_json)
                 if (len(chunk) == sentences_per_chunk): 
-                    counter += 1 
-                    out_path = f'{split_utterances_dir}/utterances{counter}.jsonl'
+                    if utterance_counter % num_file_per_dir == 0:  
+                        directory_coutner += 1
+                        os.makedirs(f'{split_utterances_dir}_{directory_coutner}', exist_ok=True)
+
+                    utterance_counter += 1 
+
+                    out_path = f'{split_utterances_dir}_{directory_coutner}/utterances{utterance_counter}.jsonl'
                     print(out_path, len(chunk))
                     with open(out_path, "w") as out_file:
                         for utterance in chunk:
