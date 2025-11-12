@@ -21,11 +21,10 @@ split_utterances_dir = f"{root}/splits"
 
 directory_coutner = 0
 utterance_counter = 0
-num_file_per_dir = 1000
+num_file_per_dir = 500
 sentences_per_chunk = 100000
 
 chunk = []
-
 
 with open(uge_json_path, 'rb') as f: 
     parser = ijson.parse(f)
@@ -46,7 +45,8 @@ with open(uge_json_path, 'rb') as f:
             if event == "start_map": 
                 partial_json = {}
             elif event == "end_map":
-                chunk.append(partial_json)
+                if partial_json["text"] != "[removed]" and partial_json["text"] != "[deleted]" and len(partial_json["text"]) > 0:
+                    chunk.append(partial_json)
                 if (len(chunk) == sentences_per_chunk): 
                     if utterance_counter % num_file_per_dir == 0:  
                         directory_coutner += 1
@@ -58,11 +58,15 @@ with open(uge_json_path, 'rb') as f:
                     print(out_path, len(chunk))
                     with open(out_path, "w") as out_file:
                         for utterance in chunk:
-                            out_file.write(f'{str(utterance)}\n') 
+                            out_file.write(f'{json.dumps(utterance)}\n') 
                     chunk = []
             elif event == "map_key":
                 pass
             else:
                 partial_json[prefix.split(".")[-1]] = value
 
-#print(chunk[-1])
+out_path = f'{split_utterances_dir}_{directory_coutner}/utterances{utterance_counter}.jsonl'
+print(out_path, len(chunk))
+with open(out_path, "w") as out_file:
+    for utterance in chunk:
+        out_file.write(f'{str(utterance)}\n') 
