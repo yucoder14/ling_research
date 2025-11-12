@@ -54,11 +54,15 @@ with open(uge_json_path, 'rb') as f:
 
                     utterance_counter += 1 
 
-                    out_path = f'{split_utterances_dir}_{directory_coutner}/utterances{utterance_counter}.jsonl'
+                    out_path = f'{split_utterances_dir}_{directory_coutner}/utterances{utterance_counter}.jsonl.fixed'
                     print(out_path, len(chunk))
                     with open(out_path, "w") as out_file:
                         for utterance in chunk:
                             out_file.write(f'{json.dumps(utterance)}\n') 
+
+                    old_path = f'{split_utterances_dir}_{directory_coutner}/utterances{utterance_counter}.jsonl'
+                    if os.path.exists(old_path):
+                        os.remove(old_path) 
                     chunk = []
             elif event == "map_key":
                 pass
