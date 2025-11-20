@@ -162,7 +162,7 @@ def filter_data_from_path(
         k = len(split_dirs) // num_cores
         args = [(out_path, split_dirs[i * k: (i + 1) * k], filters) for i in range(num_cores)] 
         with multiprocessing.Pool(processes=num_cores) as pool: 
-            pool.starmap(out_path, args)
+            pool.starmap(filter_worker, args)
     else: 
         filter_worker(out_path, split_dirs, filters)
 
