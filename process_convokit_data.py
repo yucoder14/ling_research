@@ -203,7 +203,7 @@ def main():
             exit(1)
 
     if args.mode == "split": 
-        split_data_from_path(in_path, out_path, filters, num_sentences, num_files, filters)
+        split_data_from_path(in_path, out_path, num_sentences, num_files, filters)
     else:
         filter_data_from_path(in_path, out_path, filters, args.ncpu)
 
