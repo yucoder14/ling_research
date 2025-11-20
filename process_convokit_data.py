@@ -191,7 +191,7 @@ def main():
 
     filters = None
     if args.filters is not None: 
-        if not os.path.exists(filter_path):
+        if not os.path.exists(args.filters):
             print("Invalid filter path")
             exit(1)
         try: 
