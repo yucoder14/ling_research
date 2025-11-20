@@ -51,6 +51,7 @@ def split_data_from_path(
         num_sentences: int, 
         num_files: int, 
         filters: list[tuple[str,bool]] = None
+        lines: bool = False
     ) -> None: 
     """
     Function to split giant json file into manageable chunks. Because it reads 
@@ -63,6 +64,7 @@ def split_data_from_path(
         num_sentences: number of json lines per file 
         num_files: number of files per sub directory of out_path 
         filter: if not None, filter the data for chunked data
+        lines: indicate if jsonl file
 
     Return:
         None
@@ -77,7 +79,9 @@ def split_data_from_path(
     os.makedirs(out_path, exist_ok=True)
 
     with open(in_path, "r") as infile: 
-        items = ijson.items(infile, 'item') 
+        search_tag = '' if lines else 'item'
+
+        items = ijson.items(infile, search_tag, multiple_variable=True) 
 
         sentence_count = 0
         file_count = 0
@@ -177,6 +181,7 @@ def main():
     parser.add_argument('-o', '--out_path', type=str, required=True)
     parser.add_argument('-f', '--filters', type=str, help="path to json file containing list of filters")
     parser.add_argument('-n', '--ncpu', type=int, default=1, help="choose number of cpus to use when in filter mode")
+    parser.add_argument('-l', '--lines', action="store_true", help="choose number of cpus to use when in filter mode")
     args = parser.parse_args()
 
     num_sentences = 100000
@@ -203,7 +208,7 @@ def main():
             exit(1)
 
     if args.mode == "split": 
-        split_data_from_path(in_path, out_path, num_sentences, num_files, filters)
+        split_data_from_path(in_path, out_path, num_sentences, num_files, filters, args.lines)
     else:
         filter_data_from_path(in_path, out_path, filters, args.ncpu)
 
