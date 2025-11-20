@@ -67,7 +67,7 @@ def split_data_from_path(
     """
 
     # in_path should be a file not dir
-    if not os.path.exist(in_path) or not os.path.isfile(in_path): 
+    if not os.path.exists(in_path) or not os.path.isfile(in_path): 
         print(in_path, "is invalid")
         return
 
@@ -117,12 +117,12 @@ def filter_worker(
     Helper function 
     """
     for split_dir in split_dirs: 
-        os.makedirs(f'{out_path}/{split_dirs.split('/')[-1]}', exist_ok=True)
+        os.makedirs(f"{out_path}/{split_dirs.split('/')[-1]}", exist_ok=True)
         files = os.listdir(split_dirs)
         for file in files: 
             df = pd.read_json(f'{split_dir}/{file}', lines=True)
             filtered_df = filter_data(df, filters)
-            filtered_df.to_json(f'{out_path}/{split_dirs.split('/')[-1]}/{file}', orient='records', lines=True)
+            filtered_df.to_json(f"{out_path}/{split_dirs.split('/')[-1]}/{file}", orient='records', lines=True)
 
 def filter_data_from_path(
         in_path: str, 
@@ -183,17 +183,17 @@ def main():
     in_path = args.in_path 
     out_path = args.out_path 
 
-    if not os.path.exist(in_path):
+    if not os.path.exists(in_path):
         print("Invalid in path")
-        exit(1)
-    if not os.path.exist(filter_path):
-        print("Invalid filter path")
         exit(1)
 
     os.makedirs(out_path, exist_ok=True)
 
     filters = None
     if args.filters is not None: 
+        if not os.path.exists(filter_path):
+            print("Invalid filter path")
+            exit(1)
         try: 
             filters = create_filter_list_from_json(args.filters)
         except Exception as e: 
