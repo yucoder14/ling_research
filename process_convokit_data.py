@@ -119,12 +119,12 @@ def filter_worker(
     Helper function 
     """
     for split_dir in split_dirs: 
-        os.makedirs(f"{out_path}/{split_dirs.split('/')[-1]}", exist_ok=True)
+        os.makedirs(f"{out_path}/{split_dir.split('/')[-1]}", exist_ok=True)
         files = os.listdir(split_dirs)
         for file in files: 
             df = pd.read_json(f'{split_dir}/{file}', lines=True)
             filtered_df = filter_data(df, filters)
-            filtered_df.to_json(f"{out_path}/{split_dirs.split('/')[-1]}/{file}", orient='records', lines=True)
+            filtered_df.to_json(f"{out_path}/{split_dir.split('/')[-1]}/{file}", orient='records', lines=True)
 
 def filter_data_from_path(
         in_path: str, 
