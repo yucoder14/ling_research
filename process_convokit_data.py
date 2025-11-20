@@ -120,7 +120,7 @@ def filter_worker(
     """
     for split_dir in split_dirs: 
         os.makedirs(f"{out_path}/{split_dir.split('/')[-1]}", exist_ok=True)
-        files = os.listdir(split_dirs)
+        files = os.listdir(split_dir)
         for file in files: 
             df = pd.read_json(f'{split_dir}/{file}', lines=True)
             filtered_df = filter_data(df, filters)
