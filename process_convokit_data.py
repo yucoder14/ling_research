@@ -45,6 +45,17 @@ def filter_data(df:pd.DataFrame, filters: list[tuple[str,bool]]) -> pd.DataFrame
 
     return filtered_df 
 
+def atomic_write(out_path:str, lines: list[dict]) -> None: 
+    tmp_path = f"{out_path}.tmp"
+    with open(tmp_path, "w") as outfile:
+        for line in lines:
+            outfile.write(f"{line}\n")
+
+    # atomically change file
+    os.rename(tmp_path, out_path)
+
+
+
 def split_data_from_path(
         in_path: str, 
         out_path: str, 
@@ -104,17 +115,15 @@ def split_data_from_path(
 
                 # write to file
                 file_count += 1
-                tmp_path = f"{out_path}/split_{dir_count}/utterance_{file_count}.jsonl.tmp"
                 file_path = f"{out_path}/split_{dir_count}/utterance_{file_count}.jsonl"
-                with open(tmp_path, "w") as outfile:
-                    for line in lines:
-                        outfile.write(f"{line}\n")
-
-                # atomically change file
-                os.rename(tmp_path, file_path)
+                atomic_write(file_path, lines)
 
                 # erase lines
                 lines = []
+
+        file_count += 1
+        file_path = f"{out_path}/split_{dir_count}/utterance_{file_count}.jsonl"
+        atomic_write(file_path, lines)
 
 def filter_worker(
         out_path: str, 
