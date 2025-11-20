@@ -17,6 +17,7 @@ def create_filter_list_from_json(json_path:str) -> list[tuple[str,bool]]:
     Return: 
         list of tuples with (rstr, bool) 
     """
+    print(json_path)
 
     with open(json_path, "r") as file: 
         filter_dict = json.load(file)
@@ -198,7 +199,7 @@ def main():
         try: 
             filters = create_filter_list_from_json(args.filters)
         except Exception as e: 
-            print("Failed to parse filters")
+            print("Failed to parse filters\n\t", e)
             exit(1)
 
     if args.mode == "split": 
