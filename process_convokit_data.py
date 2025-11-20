@@ -81,7 +81,7 @@ def split_data_from_path(
     with open(in_path, "r") as infile: 
         search_tag = '' if lines else 'item'
 
-        items = ijson.items(infile, search_tag, multiple_variable=True) 
+        items = ijson.items(infile, search_tag, multiple_values=True) 
 
         sentence_count = 0
         file_count = 0
