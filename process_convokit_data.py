@@ -91,7 +91,8 @@ def split_data_from_path(
         for item in items: 
             # only add lines that have relevant text
             if item["text"] != "[removed]" and item["text"] != "[deleted]" and len(item["text"]) > 0:
-                print(item)
+                print(item, flush=True)
+                
                 sentence_count += 1
                 lines.append(json.dumps(item))
 
