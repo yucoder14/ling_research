@@ -50,7 +50,7 @@ def split_data_from_path(
         out_path: str, 
         num_sentences: int, 
         num_files: int, 
-        filters: list[tuple[str,bool]] = None
+        filters: list[tuple[str,bool]] = None,
         lines: bool = False
     ) -> None: 
     """
