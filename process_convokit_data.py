@@ -20,7 +20,7 @@ def create_filter_list_from_json(json_path:str) -> list[tuple[str,bool]]:
 
     with open(json_path, "r") as file: 
         filter_dict = json.load(file)
-    return [(obj["regex"], obj["inverse"]) for obj in filter_dictl]
+    return [(obj["regex"], obj["inverse"]) for obj in filter_dict]
 
 def filter_data(df:pd.DataFrame, filters: list[tuple[str,bool]]) -> pd.DataFrame:
     """ 
