@@ -17,7 +17,8 @@ Splitting/Filtering Corpus
 
 See [`process_convokit_data.py`](process_convokit_data.py)
 
-1. Split corpus 
+Split corpus 
+------------
 
 At the time of installation, utterances were organized in a giant `json` or `jsonl` file, making it infeasible to work 
 with limited memory. Because the script parses the file as a file stream, split mode does not support multiprocessing. 
@@ -31,7 +32,8 @@ SCRIPT=/path/to/process_convokit_data.py
 $PYTHON $SCRIPT -m split -i /path/to/subreddit/utterances.json -o /path/to/output/splits  	
 ```	
 
-2. Filter corpus
+Filter corpus
+-------------
 
 The script assumes that you have already split the original corpus using the `split` mode. To filter the utterances, 
 you need to provide a `json` file with a list of python regex strings. For example:
@@ -41,7 +43,6 @@ you need to provide a `json` file with a list of python regex strings. For examp
 	{ "regex": "\\(http.+\\)" , "inverse": true },
 	{ "regex": "\\([a-zA-Z0-9 ,;\\.\"'!?#@$%^&*-_+=]+\\)" , "inverse": false }
 ]
-	 
 ```
 
 The script iterates through the filters and applies each of them, sequentially. 
@@ -85,4 +86,20 @@ optional arguments:
   -n NCPU, --ncpu NCPU  choose number of cpus to use when in filter mode
   -l, --lines           indicate if input file is a jsonl file
 ```
+
+Processing Corpus (WIP)
+=======================
+
+See [`process_spacy.py`](process_spacy.py).
+
+Once you have split and filtered the utterances, you can now parse the utterances.
+Saves the parsed files into a parquet.
+
+Viewer (WIP)
+============
+
+See [`viewer.py`](viewer.py).
+
+Primitive command line interface to sift through processed corpus.
+
 
