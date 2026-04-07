@@ -23,25 +23,26 @@ At the time of installation, utterances were organized in a giant `json` or `jso
 with limited memory. Because the script parses the file as a file stream, split mode does not support multiprocessing. 
 
 Example usage:
-	```
+
+```
 PYTHON=/path/to/python3
 SCRIPT=/path/to/process_convokit_data.py
 
 $PYTHON $SCRIPT -m split -i /path/to/subreddit/utterances.json -o /path/to/output/splits  	
-	```	
+```	
 
 2. Filter corpus
 
 The script assumes that you have already split the original corpus using the `split` mode. To filter the utterances, 
 you need to provide a `json` file with a list of python regex strings. For example:
 
-	```
+```
 [ 
 	{ "regex": "\\(http.+\\)" , "inverse": true },
 	{ "regex": "\\([a-zA-Z0-9 ,;\\.\"'!?#@$%^&*-_+=]+\\)" , "inverse": false }
 ]
 	 
-	```
+```
 
 The script iterates through the filters and applies each of them, sequentially. 
 If `"inverse"` value is set to `true`, the script will do an inverse regex search to drop any utterances 
@@ -51,14 +52,16 @@ characters for best results.
 
 Filter mode does support multiprocessing to concurrently filter utterances that have been split across multiple files.
 
-	```
+Example usage:
+
+```
 PYTHON=/path/to/python3
 SCRIPT=/path/to/process_convokit_data.py
 filter_path=/path/to/filter_paren.json
 num_cores=4
 
 $PYTHON $SCRIPT -m filter -i /path/to/input/splits -o /path/to/output/filtered_paren -f $filter_path -n $num_cores
-	```	
+```	
 
 Full usage statement
 --------------------
