@@ -23,7 +23,8 @@ Split corpus
 ------------
 
 At the time of installation, utterances were organized in a giant `json` or `jsonl` file, making it infeasible to work 
-with limited memory. Because the script parses the file as a file stream, split mode does not support multiprocessing. 
+with limited memory. Thus, I wrote this script to split the giant file into sub-files. Because the script parses the 
+file as a file stream, split mode does not support multiprocessing. 
 
 Example usage:
 
