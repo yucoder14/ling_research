@@ -1,0 +1,3 @@
+ijson==3.4.0.post0
+pandas==2.3.3
+pyarrow==23.0.0

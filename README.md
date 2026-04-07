@@ -12,6 +12,8 @@ Dependencies
 
 See [`requirements.txt`](requirements.txt)
 
+For installing `spacy`, I used `conda install -c conda-forge spacy` 
+
 Splitting/Filtering Corpus
 ==========================
 
