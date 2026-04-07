@@ -46,6 +46,9 @@ def filter_data(df:pd.DataFrame, filters: list[tuple[str,bool]]) -> pd.DataFrame
     return filtered_df 
 
 def atomic_write(out_path:str, lines: list[dict]) -> None: 
+    """
+    Helper function to write to a file atomically
+    """
     tmp_path = f"{out_path}.tmp"
     with open(tmp_path, "w") as outfile:
         for line in lines:
@@ -53,8 +56,6 @@ def atomic_write(out_path:str, lines: list[dict]) -> None:
 
     # atomically change file
     os.rename(tmp_path, out_path)
-
-
 
 def split_data_from_path(
         in_path: str, 
@@ -192,7 +193,7 @@ def main():
     parser.add_argument('-o', '--out_path', type=str, required=True)
     parser.add_argument('-f', '--filters', type=str, help="path to json file containing list of filters")
     parser.add_argument('-n', '--ncpu', type=int, default=1, help="choose number of cpus to use when in filter mode")
-    parser.add_argument('-l', '--lines', action="store_true", help="choose number of cpus to use when in filter mode")
+    parser.add_argument('-l', '--lines', action="store_true", help="indicate if input file is a jsonl file")
     args = parser.parse_args()
 
     num_sentences = 100000
