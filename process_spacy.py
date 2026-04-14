@@ -21,6 +21,9 @@ class SentenceType(Enum):
     OTHER = 8 
 
 def classify(root_pos, left_contains_noun): 
+    """
+    Crude classification function. Classifies phrases by root's part of speech. 
+    """
     sentence_type = SentenceType.OTHER
 
     if root_pos in ("VERB", "AUX"): 
@@ -38,6 +41,7 @@ def classify(root_pos, left_contains_noun):
         sentence_type = SentenceType.ADV_PHRASE
     elif root_pos == "ADJ":
         sentence_type = SentenceType.ADJ_PHRASE
+    # should add prepositional phrases?
 
     return sentence_type.value
 
@@ -64,6 +68,8 @@ def parse_sentence_batch(nlp, batch):
     batch_processed = list(itertools.chain(*list(map(parse_sentence, docs))))
     return batch_processed
 
+# with regards to processing individual words with spacy, I bet it would be more efficient for me to process them in a batch and then 
+# do whatever logic i need to map them back to the correct texts
 def process_file_with_spacy(
     nlp, 
     in_path, 
@@ -78,22 +84,26 @@ def process_file_with_spacy(
 
     batch_to_process_peripherals = []
     batch_to_process = []
-    text_ids = []
-    text_id = 0
+    text_ids = []  
+    # instead of doing this, i should instead use (user, timestamp) as a key to find the correct utterance...
+    # the logic is needlessly complex and is failing
+    text_id = 0 # this id is just the row number of the source sentence in utterances_#.jsonl file
     with pd.read_json(in_path, lines=True, chunksize=chunksize) as reader:
         for chunk in reader:
             texts = chunk["text"].values
             texts_gen = (re.findall(r_search, text, flags=re.MULTILINE) for text in texts)
+            # instead of pulling out individual words, do it after the surrounding sentences have been parsed
             peripherals_gen = (
                 [
-                    (word[0], word[-1]) 
-                    for item in re.split(r_split, text) if (word := item.strip(' ').split(' ')) 
+                    (word[0].strip(), word[-1].split()) 
+                    for item in re.split(r_split, text) if (word := item.strip().split(' ')) 
                 ]
                 for text in texts
             )
 
             for matches, peripherals in zip(texts_gen, peripherals_gen):
                 if len(batch_to_process) >= batch_size: 
+                    #print(batch_to_process_peripherals)
                     #process batch 
                     parsed.extend(
                         [
@@ -102,7 +112,7 @@ def process_file_with_spacy(
                         ]
                     )
                     processed += len(batch_to_process)
-                    print(f"\033[2J\r{processed}")
+                    print(f"\033[2J\r{processed} {text_id}")
                     # clear batch and add to batch
                     batch_to_process = []
                     batch_to_process_peripherals = []

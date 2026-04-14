@@ -58,8 +58,8 @@ while True:
         print()
         print("Searched Strings")
         print("="*70)
-        for text, category in list(zip(row["text"], row["category"])):
-            print("Text:", text, "Type:", category.name)
+        for text, category, left, right in list(zip(row["text"], row["category"], row['left word'], row['right word'])):
+            print("Text:", text, "Type:", category.name, left, right)
 
         
 

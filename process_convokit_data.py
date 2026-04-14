@@ -63,7 +63,7 @@ def split_data_from_path(
         num_sentences: int, 
         num_files: int, 
         filters: list[tuple[str,bool]] = None,
-        lines: bool = False
+        is_lines: bool = False
     ) -> None: 
     """
     Function to split giant json file into manageable chunks. Because it reads 
@@ -91,7 +91,7 @@ def split_data_from_path(
     os.makedirs(out_path, exist_ok=True)
 
     with open(in_path, "r") as infile: 
-        search_tag = '' if lines else 'item'
+        search_tag = '' if is_lines else 'item'
 
         items = ijson.items(infile, search_tag, multiple_values=True) 
 
