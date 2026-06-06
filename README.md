@@ -17,7 +17,7 @@ For installing `spacy`, I used `conda install -c conda-forge spacy`
 Splitting/Filtering Corpus
 ==========================
 
-See [`process_convokit_data.py`](process_convokit_data.py)
+See [`process_convokit_data.py`](src/process_convokit_data.py)
 
 Split corpus 
 ------------
@@ -93,7 +93,7 @@ optional arguments:
 Processing Corpus (WIP)
 =======================
 
-See [`process_spacy.py`](process_spacy.py).
+See [`process_spacy.py`](src/process_spacy.py).
 
 Once you have split and filtered the utterances, you can now parse the utterances.
 Saves the parsed files into a parquet.
@@ -101,7 +101,7 @@ Saves the parsed files into a parquet.
 Viewer (WIP)
 ============
 
-See [`viewer.py`](viewer.py).
+See [`viewer.py`](src/viewer.py).
 
 Primitive command line interface to sift through processed corpus.
 
