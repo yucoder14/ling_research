@@ -1,0 +1,4 @@
+[ 
+	{ "regex": "\\(http.+\\)" , "inverse": true },
+	{ "regex": "\\([a-zA-Z0-9 ,;\\.\"'!?#@$%^&*-_+=]+\\)" , "inverse": false }
+]

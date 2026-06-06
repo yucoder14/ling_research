@@ -9,6 +9,13 @@ import pyarrow.parquet as pq
 
 from enum import Enum
 
+
+# punctuation marks that usually ends a sentence, may not be exhaustive list
+sentence_enders = '\.|!|\?|;|\:'
+# when splitting the sentences, keep the first sentence ender and discard rest 
+# including any following white spaces
+sentence_separator = fr'(?<={sentence_enders})(?:{sentence_enders})*(?: |\\n)*'
+
 class SentenceType(Enum):
     SENTENCE = 0 
     NOUN_PHRASE = 1 
@@ -60,16 +67,42 @@ def parse_sentence(doc):
 
     return results
 
-def parse_peripherals(nlp, batch):
-    pass
-
 def parse_sentence_batch(nlp, batch):
     docs = list(nlp.pipe(batch, batch_size = len(batch)))
     batch_processed = list(itertools.chain(*list(map(parse_sentence, docs))))
     return batch_processed
 
-# with regards to processing individual words with spacy, I bet it would be more efficient for me to process them in a batch and then 
-# do whatever logic i need to map them back to the correct texts
+def get_boundary_words(left_docs, right_docs): 
+    result = []
+    for left_doc, right_doc in zip(left_docs, right_docs): 
+        # these will be list of sentences
+        left_sents = list(left_doc.sents) 
+        right_sents = list(right_doc.sents)
+
+        # last word of the last sentence from the left
+        left_boundary = (str(left_sents[-1][-1]), str(left_sents[-1][-1].pos_)) if len(left_sents) else (None, None)
+
+        # first word of the first sentence from the right
+        right_boundary = (str(right_sents[0][0]), str(right_sents[0][0].pos_)) if len(right_sents) else (None, None)
+
+        result.append((left_boundary, right_boundary))
+
+    return result
+
+def parse_peripheral_batch(nlp, batch):
+    lefts = []
+    rights = []
+    for left, right in batch:
+        lefts.append(left)
+        rights.append(right)
+
+    left_docs = list(nlp.pipe(lefts, batch_size = len(batch)))
+    right_docs = list(nlp.pipe(rights, batch_size = len(batch)))
+    
+    boundary_words = get_boundary_words(left_docs, right_docs)
+
+    return boundary_words
+
 def process_file_with_spacy(
     nlp, 
     in_path, 
@@ -85,52 +118,93 @@ def process_file_with_spacy(
     batch_to_process_peripherals = []
     batch_to_process = []
     text_ids = []  
-    # instead of doing this, i should instead use (user, timestamp) as a key to find the correct utterance...
-    # the logic is needlessly complex and is failing
     text_id = 0 # this id is just the row number of the source sentence in utterances_#.jsonl file
     with pd.read_json(in_path, lines=True, chunksize=chunksize) as reader:
         for chunk in reader:
             texts = chunk["text"].values
-            texts_gen = (re.findall(r_search, text, flags=re.MULTILINE) for text in texts)
-            # instead of pulling out individual words, do it after the surrounding sentences have been parsed
+            matches_gen = (re.findall(r_search, text, flags=re.MULTILINE) for text in texts)
+
+            # first split the text by whatever you are trying to match
+            # then, for each chunk, split it into sentences before grabbing the first and last sentences 
+            # for each chunk; this makes it easy to find boundary sentences
             peripherals_gen = (
                 [
-                    (word[0].strip(), word[-1].split()) 
-                    for item in re.split(r_split, text) if (word := item.strip().split(' ')) 
+                    (
+                        sentences[0], 
+                        # because re.split works like the following:  
+                        #       >>> re.split(sentence_separator, "hello world!")
+                        #       ['hello world!', '']
+                        # i have to do a weird check for this particular edge case
+                        sentences[-2] if len(sentences) > 1 and not len(sentences[-1]) else sentences[-1]
+                    )
+                    for split_chunk in re.split(r_split, text) 
+                    if (sentences:=re.split(sentence_separator, split_chunk.strip()))
                 ]
                 for text in texts
             )
 
-            for matches, peripherals in zip(texts_gen, peripherals_gen):
+            
+            for matches, peripherals in zip(matches_gen, peripherals_gen):
                 if len(batch_to_process) >= batch_size: 
                     #print(batch_to_process_peripherals)
                     #process batch 
                     parsed.extend(
                         [
-                            [text_ids[i]] + data[0] + list(data[1]) 
-                            for i, data in enumerate(zip(parse_sentence_batch(nlp, batch_to_process), batch_to_process_peripherals))
+                            [text_ids[i]] + data[0] + list(data[1]) + list(data[2])
+                            for i, data in enumerate(
+                                zip(parse_sentence_batch(nlp, batch_to_process), 
+                                    batch_to_process_peripherals, 
+                                    parse_peripheral_batch(nlp, batch_to_process_peripherals))
+                            )
                         ]
                     )
                     processed += len(batch_to_process)
                     print(f"\033[2J\r{processed} {text_id}")
-                    # clear batch and add to batch
+                    # clear batch
                     batch_to_process = []
                     batch_to_process_peripherals = []
                     text_ids = []
 
-                batch_to_process.extend(matches)
-                batch_to_process_peripherals.extend([(peripherals[i - 1][-1], peripherals[i][0]) for i in range(1, len(matches)+1)])
-                text_ids.extend([text_id]*len(matches))
-                text_id +=1
+                # add things to batch
+                batch_to_process.extend(matches)            # matches may be a list, i.e., text contained multiple matches
+                text_ids.extend([text_id]*len(matches))     # assign correct text_id to each matches
+                text_id +=1                                 # increment text_id per text NOT per matches
 
+                # i th match is surround by the last sentence of the (i - 1) th chunk and first sentence of i th chunk
+                batch_to_process_peripherals.extend(
+                        [
+                            (peripherals[i - 1][-1], peripherals[i][0]) 
+                            for i in range(1, len(matches)+1)
+                        ]
+                )
+
+            # final batch
             parsed.extend(
                 [
-                    [text_ids[i]] + data[0] + [data[1][0], data[1][1]] 
-                    for i, data in enumerate(zip(parse_sentence_batch(nlp, batch_to_process), batch_to_process_peripherals))
+                    [text_ids[i]] + data[0] + list(data[1]) + list(data[2])
+                    for i, data in enumerate(
+                        zip(parse_sentence_batch(nlp, batch_to_process), 
+                            batch_to_process_peripherals, 
+                            parse_peripheral_batch(nlp, batch_to_process_peripherals))
+                    )
                 ]
             )
 
-    parsed_df = pd.DataFrame(parsed, columns=["context_text_id", "text", "root", "root_pos", "sentence_type", "num_words", "left word", "right word"])
+    parsed_df = pd.DataFrame(
+        parsed, 
+        columns=[
+            "context_text_id", 
+            "text", 
+            "root", 
+            "root_pos", 
+            "sentence_type", 
+            "num_words", 
+            "left_sentence", 
+            "right_sentence",
+            "left_boundary_word",
+            "right_boundary_word"
+        ]
+    )
     parsed_df.attrs["source_data_path"] = in_path
     
     parsed_df.to_parquet(out_path)
@@ -152,5 +226,5 @@ if __name__ == "__main__":
     r_search = r'(?<=\()[a-zA-Z0-9 ,;."\'!?#@$%^&*-_+=]+(?=\))'
     r_split = r'\([a-zA-Z0-9 ,;."\'!?#@$%^&*-_+=]+\)'
 
-    process_file_with_spacy(nlp, test_file, r_search, r_split, "testing.parquet", chunksize=1000, batch_size=300)
+    process_file_with_spacy(nlp, test_file, r_search, r_split, "testing.parquet", chunksize=5000, batch_size=1000)
 
