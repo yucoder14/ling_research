@@ -259,21 +259,21 @@ def parse_from_path(
         os.makedirs(f"{out_path}/{split_dir.split('/')[-1]}", exist_ok=True)
         files = os.listdir(split_dir)
         for file in files:
-            in_path = f"{split_dir}/{file}"
-            out_path = f"{out_path}/{split_dir.split('/')[-1]}/{file.split('.')[0]}.parquet"
-            print("Parsing ", in_path)
+            in_file_path = f"{split_dir}/{file}"
+            out_file_path = f"{out_path}/{split_dir.split('/')[-1]}/{file.split('.')[0]}.parquet"
+            print("Parsing ", in_file_path)
             start = time.perf_counter()
             parse_file_with_spacy(
                 nlp,
-                in_path,
+                in_file_path,
                 filters['search'],
                 filters['split'],
-                out_path,
+                out_file_path,
                 chunksize=chunksize,
                 batch_size=batch_size
             )
             end = time.perf_counter()
-            print(f"Saved parsed file at {out_path}. Elapsed {(end - start) / 60} minutes")
+            print(f"Saved parsed file at {out_file_path}. Elapsed {(end - start) / 60} minutes")
 
 def main():
     parser = argparse.ArgumentParser(
